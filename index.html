@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>옷장 관리 시스템</title>
+    <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-body: #F4EFE6; --bg-card: #FFFFFF; --text-main: #3E2723; --text-sub: #795548;      
+            --color-green: #9CAF88; --color-green-hover: #8A9F76;
+            --color-orange: #D99C5B; --color-orange-hover: #C88A4A;
+            --color-clay: #BFA38A; --color-clay-hover: #A88D75;
+            --border-color: #E2D7C8;
+        }
+        
+        body { font-family: 'Gowun Dodum', sans-serif; background-color: var(--bg-body); color: var(--text-main); margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .container { background: var(--bg-card); padding: 40px; border-radius: 8px; box-shadow: 0 4px 20px rgba(62, 39, 35, 0.06); width: 100%; max-width: 900px; box-sizing: border-box; border: 1px solid var(--border-color); }
+        h1 { font-size: 22px; color: var(--text-main); margin: 0 0 30px 0; padding-bottom: 12px; border-bottom: 2px solid var(--text-main); font-weight: normal; }
+
+        .login-wrapper { text-align: center; padding: 40px 0; }
+        .login-desc { font-size: 16px; color: var(--text-sub); margin-bottom: 25px; }
+        
+        input[type="password"], input[type="text"], textarea { padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 4px; font-family: inherit; font-size: 15px; outline: none; color: var(--text-main); background-color: #FFF; box-sizing: border-box; }
+        input[type="password"] { text-align: center; width: 220px; background-color: var(--bg-body); }
+        
+        button { font-family: inherit; font-size: 14px; cursor: pointer; border: none; border-radius: 4px; transition: all 0.2s ease; padding: 9px 16px; }
+        .btn-login { background-color: var(--text-main); color: #FFF; margin-left: 10px; padding: 10px 20px; }
+        .btn-login:hover { background-color: #2D1C19; }
+
+        #main-screen { display: none; }
+        
+        .header-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; font-size: 18px; }
+        .account-box { display: flex; align-items: center; gap: 15px; }
+        .btn-inbox { background: none; padding: 4px 8px; font-size: 18px; color: var(--text-sub); border-radius: 4px; border: 1px solid var(--border-color); }
+        .btn-inbox:hover { background-color: #FFF; color: var(--text-main); }
+        .coin-display { font-weight: bold; color: var(--color-orange); }
+
+        .layout-grid { display: flex; gap: 40px; align-items: flex-start; }
+        .canvas-section { display: flex; flex-direction: column; gap: 15px; }
+        .canvas-container { position: relative; background: var(--bg-body); padding: 10px; border: 1px solid var(--border-color); width: 320px; box-sizing: border-box; }
+        canvas { background-color: #FFFFFF; width: 100%; height: auto; display: block; }
+        
+        /* 드래그 가능한 이펙트 오버레이 스타일 (모바일 터치 완벽 지원) */
+        #effect-overlay {
+            position: absolute; display: none; cursor: grab; z-index: 10;
+            user-select: none; -webkit-user-drag: none; touch-action: none;
+        }
+        #effect-overlay:active { cursor: grabbing; }
+
+        .shop-section { flex: 1; }
+        .tab-menu { display: flex; border-bottom: 1px solid var(--border-color); margin-bottom: 20px; flex-wrap: wrap; gap: 5px; padding-bottom: 5px; }
+        .tab-btn { background: none; border: none; padding: 10px 15px; font-size: 15px; color: var(--text-sub); border-bottom: 3px solid transparent; border-radius: 0; }
+        .tab-btn.active { color: var(--text-main); font-weight: bold; border-bottom: 3px solid var(--text-main); }
+
+        .shop-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; max-height: 400px; overflow-y: auto; padding-right: 10px; }
+        .shop-list::-webkit-scrollbar { width: 6px; }
+        .shop-list::-webkit-scrollbar-thumb { background-color: #D3C9BC; border-radius: 4px; }
+
+        .section-divider { grid-column: 1 / -1; font-weight: bold; color: var(--text-main); padding: 10px 5px 5px 5px; border-bottom: 1px dashed var(--border-color); margin-top: 10px; font-size: 15px; }
+        .section-divider:first-child { margin-top: 0; }
+
+        .item-card { background: #FFFFFF; padding: 15px; border: 1px solid var(--border-color); border-radius: 4px; display: flex; flex-direction: column; align-items: center; }
+        .item-preview { width: 90px; height: 90px; object-fit: contain; margin-bottom: 12px; }
+        .item-name { font-size: 15px; margin-bottom: 12px; color: var(--text-main); text-align: center; }
+
+        .card-actions { display: flex; gap: 8px; width: 100%; }
+        .btn-buy { background-color: var(--color-orange); color: #FFF; flex: 1; }
+        .btn-buy:hover { background-color: var(--color-orange-hover); }
+        .btn-equip { background-color: var(--color-green); color: #FFF; flex: 1; }
+        .btn-equip:hover { background-color: var(--color-green-hover); }
+        .btn-gift-trigger { background-color: var(--color-clay); color: #FFF; padding: 9px 12px; }
+        .btn-gift-trigger:hover { background-color: var(--color-clay-hover); }
+
+        .btn-save { background-color: var(--text-main); color: #FFF; width: 100%; padding: 12px; font-size: 16px; }
+        .btn-save:hover { background-color: #2D1C19; }
+
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(45, 28, 25, 0.4); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-box { background: #FFF; padding: 30px; border-radius: 6px; border: 1px solid var(--border-color); width: 100%; max-width: 420px; box-sizing: border-box; color: var(--text-main); }
+        .modal-title { font-size: 18px; margin-bottom: 20px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color); }
+        
+        .form-group { margin-bottom: 16px; text-align: left; }
+        .form-label { font-size: 14px; margin-bottom: 6px; display: block; color: var(--text-sub); }
+        .radio-set { display: flex; gap: 15px; margin-top: 4px; }
+        .radio-set label { font-size: 15px; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+        
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; }
+        .btn-cancel { background-color: #EEE; color: #555; }
+        .btn-cancel:hover { background-color: #DDD; }
+        .btn-submit { background-color: var(--text-main); color: #FFF; }
+        .btn-submit:hover { background-color: #2D1C19; }
+
+        .inbox-list { max-height: 250px; overflow-y: auto; text-align: left; }
+        .inbox-item { padding: 15px 12px; border-bottom: 1px solid #EEE; font-size: 15px; line-height: 1.5; }
+        .inbox-meta { color: var(--text-sub); font-size: 13px; margin-top: 8px; background: var(--bg-body); padding: 8px 12px; border-radius: 4px; }
+        .btn-delete-msg { background: none; border: 1px solid #E5C5C5; color: #A65A5A; font-size: 12px; padding: 4px 8px; border-radius: 4px; cursor: pointer; margin-left: 10px; }
+        .btn-delete-msg:hover { background-color: #FAF0F0; }
+        .system-msg { color: #A65A5A; font-size: 14px; margin-top: 15px; height: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container" id="login-screen">
+        <h1>나만의 옷장</h1>
+        <div class="login-wrapper">
+            <div class="login-desc">데이터를 불러오기 위해 비밀번호를 입력해 주세요.</div>
+            <input type="password" id="pw-input" placeholder="비밀번호 입력" onkeypress="if(event.keyCode==13) login()">
+            <button class="btn-login" onclick="login()">접속하기</button>
+            <div id="login-msg" class="system-msg"></div>
+        </div>
+    </div>
+
+    <div class="container" id="main-screen">
+        <div class="header-info">
+            <span id="user-name-display"></span>
+            <div class="account-box">
+                <span class="coin-display"><span id="user-coin-display">0</span> C</span>
+                <button class="btn-inbox" onclick="openInboxModal()" title="수신함 확인">✉</button>
+            </div>
+        </div>
+        
+        <div class="layout-grid">
+            <div class="canvas-section">
+                <div class="canvas-container">
+                    <canvas id="charCanvas" width="300" height="400"></canvas>
+                    <!-- 드래그 전용 오버레이 이미지 -->
+                    <img id="effect-overlay" crossorigin="Anonymous" src="">
+                </div>
+                <button class="btn-save" onclick="saveAsPNG()">이미지 저장</button>
+            </div>
+            
+            <div class="shop-section">
+                <div class="tab-menu">
+                    <button class="tab-btn active" id="tab-clothes" onclick="switchTab('clothes')">의상</button>
+                    <button class="tab-btn" id="tab-face" onclick="switchTab('face')">표정</button>
+                    <button class="tab-btn" id="tab-bg" onclick="switchTab('bg')">배경</button>
+                </div>
+                <div class="shop-list" id="shop-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 모달창 영역 (이전과 동일) -->
+    <div class="modal-overlay" id="gift-modal">
+        <div class="modal-box">
+            <div class="modal-title" id="gift-modal-title">의상 선물하기</div>
+            <div class="form-group"><label class="form-label">수령인 캐릭터 이름</label><input type="text" id="gift-recipient" style="width:100%;" placeholder="이름을 정확히 입력하세요"></div>
+            <div class="form-group">
+                <label class="form-label">발송인 표기 방식</label>
+                <div class="radio-set"><label><input type="radio" name="gift-sender-vis" value="공개" checked> 발송인 공개</label><label><input type="radio" name="gift-sender-vis" value="익명"> 익명</label></div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">메시지 동봉 여부</label>
+                <div class="radio-set"><label><input type="radio" name="gift-msg-toggle" value="없음" checked onchange="toggleMessageField(false)"> 메시지 없음</label><label><input type="radio" name="gift-msg-toggle" value="작성" onchange="toggleMessageField(true)"> 메시지 작성</label></div>
+            </div>
+            <div class="form-group"><textarea id="gift-message" style="width:100%; height:80px; resize:none;" placeholder="전할 문구를 작성하세요" disabled></textarea></div>
+            <div class="modal-actions"><button class="btn-cancel" onclick="closeGiftModal()">취소</button><button class="btn-submit" onclick="submitGift()">선물 발송</button></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="inbox-modal">
+        <div class="modal-box"><div class="modal-title">받은 선물 및 메시지</div><div class="inbox-list" id="inbox-list-area"></div><div class="modal-actions"><button class="btn-cancel" onclick="closeInboxModal()">닫기</button></div></div>
+    </div>
+
+<script>
+    // ★★★ 웹 앱 URL 기입 필수 ★★★
+    const WEB_APP_URL = '여기에_웹_앱_URL을_붙여넣으세요';
+
+    let userData = { name: '', coins: 0, owned: [], rowIndex: 0 };
+    let shopItems = []; bgItems = []; let receivedMessages = []; let accessoryMap = {};
+    let faceItems = { eyebrow: [], eye: [], mouth: [], effect: [] }; // 이펙트 배열 추가
+    
+    let currentClothes = 'default'; let currentBg = ''; let currentEyebrow = '';
+    let currentEye = ''; let currentMouth = ''; let currentEffect = ''; let currentTab = 'clothes'; let selectedGiftItemId = ''; 
+    let charAssets = { defaultClothes: '', body: '', frontHair: '', backHair: '' };
+
+    async function login() {
+        const pw = document.getElementById('pw-input').value; const msg = document.getElementById('login-msg');
+        if(!pw) { msg.innerText = "비밀번호를 입력해 주세요."; return; }
+        msg.innerText = "데이터를 확인하고 있습니다...";
+        try {
+            const response = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'login', password: pw }) });
+            const data = await response.json();
+            if (data.success) {
+                userData.name = data.name; userData.coins = data.coins; userData.owned = data.owned; userData.rowIndex = data.rowIndex;
+                shopItems = data.shopItems; bgItems = data.bgItems || []; charAssets = data.charAssets;
+                receivedMessages = data.receivedMessages || []; accessoryMap = data.accessoryMap || {};
+                faceItems = data.faceItems || { eyebrow: [], eye: [], mouth: [], effect: [] };
+                if(!userData.owned.includes('default')) userData.owned.push('default');
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('main-screen').style.display = 'block';
+                updateUI(); renderCanvas();
+            } else { msg.innerText = data.message; }
+        } catch (error) { msg.innerText = "서버 연동에 실패했습니다."; }
+    }
+
+    function switchTab(tabName) {
+        currentTab = tabName; document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(`tab-${tabName}`).classList.add('active'); updateUI();
+    }
+
+    function createPartCard(item, currentId, equipFunc) {
+        const isEquipped = (currentId === item.id);
+        return `
+            <div class="item-card">
+                <img src="${item.img}" class="item-preview" onerror="this.src='https://via.placeholder.com/90/F4EFE6/3E2723?text=파츠'">
+                <div class="item-name">${item.name}</div>
+                <div class="card-actions"><button class="btn-equip" onclick="${equipFunc}('${item.id}')">${isEquipped ? '적용 중' : '적용하기'}</button></div>
+            </div>`;
+    }
+
+    function createNoneCard(currentId, equipFunc, label) {
+        return `
+            <div class="item-card">
+                <div class="item-preview" style="background:#F4EFE6; border:1px dashed #CCC; box-sizing:border-box;"></div>
+                <div class="item-name">${label} 없음</div>
+                <div class="card-actions"><button class="btn-equip" onclick="${equipFunc}('')">${currentId === '' ? '적용 중' : '적용하기'}</button></div>
+            </div>`;
+    }
+
+    function updateUI() {
+        document.getElementById('user-name-display').innerText = `${userData.name} 님의 옷장`;
+        document.getElementById('user-coin-display').innerText = userData.coins.toLocaleString();
+        let html = '';
+
+        if (currentTab === 'clothes') {
+            html += `<div class="item-card"><img src="${charAssets.defaultClothes}" class="item-preview" onerror="this.src='https://via.placeholder.com/90/F4EFE6/3E2723?text=기본옷'"><div class="item-name">기본 의상</div><div class="card-actions"><button class="btn-equip" onclick="equipItem('default')">${currentClothes === 'default' ? '착용 중' : '착용하기'}</button></div></div>`;
+            html += shopItems.map(item => {
+                const isOwned = userData.owned.includes(item.id);
+                let actionBtnHtml = isOwned ? `<button class="btn-equip" onclick="equipItem('${item.id}')">${currentClothes === item.id ? '착용 중' : '착용하기'}</button>` : `<button class="btn-buy" onclick="buyItem('${item.id}', ${item.price})">${item.price} C</button>`;
+                return `<div class="item-card"><img src="${item.img}" class="item-preview" onerror="this.src='https://via.placeholder.com/90/F4EFE6/3E2723?text=의상'"><div class="item-name">${item.name}</div><div class="card-actions">${actionBtnHtml}<button class="btn-gift-trigger" onclick="openGiftModal('${item.id}')" title="선물하기">🎁</button></div></div>`;
+            }).join('');
+        } 
+        else if (currentTab === 'face') {
+            html += '<div class="section-divider">--- 이펙트 (드래그 가능) ---</div>';
+            html += createNoneCard(currentEffect, 'equipEffect', '이펙트');
+            html += faceItems.effect.map(item => createPartCard(item, currentEffect, 'equipEffect')).join('');
+
+            html += '<div class="section-divider">--- 눈썹 ---</div>';
+            html += createNoneCard(currentEyebrow, 'equipEyebrow', '눈썹');
+            html += faceItems.eyebrow.map(item => createPartCard(item, currentEyebrow, 'equipEyebrow')).join('');
+
+            html += '<div class="section-divider">--- 눈 ---</div>';
+            html += createNoneCard(currentEye, 'equipEye', '눈');
+            html += faceItems.eye.map(item => createPartCard(item, currentEye, 'equipEye')).join('');
+
+            html += '<div class="section-divider">--- 입 ---</div>';
+            html += createNoneCard(currentMouth, 'equipMouth', '입');
+            html += faceItems.mouth.map(item => createPartCard(item, currentMouth, 'equipMouth')).join('');
+        }
+        else if (currentTab === 'bg') {
+            html += createNoneCard(currentBg, 'equipBg', '배경');
+            html += bgItems.map(item => createPartCard(item, currentBg, 'equipBg')).join('');
+        }
+        document.getElementById('shop-list').innerHTML = html;
+    }
+
+    // --- 이펙트 드래그 로직 (모바일/PC 공용 포인터 이벤트) ---
+    const overlay = document.getElementById('effect-overlay');
+    let isDragging = false, startMouseX, startMouseY, initialLeft, initialTop;
+
+    overlay.addEventListener('pointerdown', (e) => {
+        isDragging = true;
+        startMouseX = e.clientX;
+        startMouseY = e.clientY;
+        initialLeft = overlay.offsetLeft;
+        initialTop = overlay.offsetTop;
+        overlay.setPointerCapture(e.pointerId);
+        overlay.style.cursor = 'grabbing';
+    });
+
+    overlay.addEventListener('pointermove', (e) => {
+        if (!isDragging) return;
+        let nx = initialLeft + (e.clientX - startMouseX);
+        let ny = initialTop + (e.clientY - startMouseY);
+        overlay.style.left = nx + 'px';
+        overlay.style.top = ny + 'px';
+    });
+
+    overlay.addEventListener('pointerup', (e) => {
+        isDragging = false;
+        overlay.releasePointerCapture(e.pointerId);
+        overlay.style.cursor = 'grab';
+    });
+
+    // CORS 우회 적용 이미지 로더
+    const loadImage = (src) => {
+        return new Promise((resolve) => {
+            if (!src) return resolve(null);
+            const img = new Image(); img.crossOrigin = "Anonymous"; img.onload = () => resolve(img);
+            img.onerror = () => { const proxyImg = new Image(); proxyImg.crossOrigin = "Anonymous"; proxyImg.src = 'https://corsproxy.io/?' + encodeURIComponent(src); proxyImg.onload = () => resolve(proxyImg); proxyImg.onerror = () => resolve(null); };
+            img.src = src; 
+        });
+    };
+
+    // 이펙트 장착 처리
+    async function equipEffect(id) {
+        currentEffect = id; updateUI();
+        if (id === '') {
+            overlay.style.display = 'none';
+        } else {
+            const item = faceItems.effect.find(i => i.id === id);
+            if(item) {
+                const img = await loadImage(item.img);
+                if(img) {
+                    overlay.src = img.src; 
+                    overlay.style.display = 'block';
+                    overlay.style.left = '20px'; // 생성 시 기본 위치 X
+                    overlay.style.top = '20px';  // 생성 시 기본 위치 Y
+                }
+            }
+        }
+    }
+
+    async function buyItem(itemId, price) {
+        if (userData.coins < price) { alert('코인이 부족합니다.'); return; }
+        const targetItem = shopItems.find(i=>i.id===itemId);
+        if (!confirm(`[${targetItem.name}] 의상을 구매하시겠습니까?\n차감: ${price} C`)) return;
+        try {
+            const response = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'buy', rowIndex: userData.rowIndex, cost: price, itemId: itemId, itemName: targetItem.name }) });
+            const data = await response.json();
+            if (data.success) { userData.coins = data.coins; userData.owned = data.owned; updateUI(); } else { alert(data.message); }
+        } catch (error) { alert('구매 중 오류 발생.'); }
+    }
+
+    function openGiftModal(itemId) {
+        selectedGiftItemId = itemId; document.getElementById('gift-modal-title').innerText = `[${shopItems.find(i => i.id === itemId).name}] 선물하기`;
+        document.getElementById('gift-recipient').value = ''; document.querySelector('input[name="gift-sender-vis"][value="공개"]').checked = true;
+        document.querySelector('input[name="gift-msg-toggle"][value="없음"]').checked = true;
+        document.getElementById('gift-message').value = ''; document.getElementById('gift-message').disabled = true;
+        document.getElementById('gift-modal').style.display = 'flex';
+    }
+    function closeGiftModal() { document.getElementById('gift-modal').style.display = 'none'; }
+    function toggleMessageField(isActive) { document.getElementById('gift-message').disabled = !isActive; if (!isActive) document.getElementById('gift-message').value = ''; }
+
+    async function submitGift() {
+        const recipient = document.getElementById('gift-recipient').value.trim();
+        if (!recipient || recipient === userData.name) { alert('올바른 캐릭터 이름을 입력하세요.'); return; }
+        const item = shopItems.find(i => i.id === selectedGiftItemId);
+        if (userData.coins < item.price) { alert('코인이 부족합니다.'); return; }
+        if (!confirm(`[${recipient}] 님에게 선물하시겠습니까? (소모: ${item.price} C)`)) return;
+        try {
+            const response = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'gift', senderRowIndex: userData.rowIndex, recipientName: recipient, itemId: selectedGiftItemId, itemName: item.name, cost: item.price, senderVisibility: document.querySelector('input[name="gift-sender-vis"]:checked').value, messageText: document.querySelector('input[name="gift-msg-toggle"]:checked').value === '작성' ? document.getElementById('gift-message').value : '' }) });
+            const data = await response.json();
+            if (data.success) { alert('선물 발송 완료'); userData.coins = data.coins; closeGiftModal(); updateUI(); } else { alert(data.message); }
+        } catch (e) { alert('통신 오류'); }
+    }
+
+    function openInboxModal() {
+        let listHtml = receivedMessages.length === 0 ? '<div style="text-align:center; padding: 20px; color:#999;">도착한 선물이나 메시지가 없습니다.</div>' : receivedMessages.map((m, idx) => `<div class="inbox-item" id="msg-item-${idx}"><div style="display:flex; justify-content:space-between; align-items:flex-start;"><div><b>${m.sender}</b> 님께서 의상 <b>[${m.itemName}]</b>을 선물하셨습니다.</div><button class="btn-delete-msg" onclick="deleteMessage(${idx}, ${m.logRowIndex})">삭제</button></div>${m.message && m.message !== '없음' ? `<div class="inbox-meta">${m.message}</div>` : ''}</div>`).join('');
+        document.getElementById('inbox-list-area').innerHTML = listHtml; document.getElementById('inbox-modal').style.display = 'flex';
+    }
+    function closeInboxModal() { document.getElementById('inbox-modal').style.display = 'none'; }
+    async function deleteMessage(idx, logRowIndex) { if (!confirm('삭제하시겠습니까?')) return; document.getElementById(`msg-item-${idx}`).style.display = 'none'; try { await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteMessage', logRowIndex: logRowIndex }) }); } catch(e){} }
+
+    function equipItem(id) { currentClothes = id; updateUI(); renderCanvas(); }
+    function equipBg(id) { currentBg = id; updateUI(); renderCanvas(); }
+    function equipEyebrow(id) { currentEyebrow = id; updateUI(); renderCanvas(); }
+    function equipEye(id) { currentEye = id; updateUI(); renderCanvas(); }
+    function equipMouth(id) { currentMouth = id; updateUI(); renderCanvas(); }
+
+    async function renderCanvas() {
+        const canvas = document.getElementById('charCanvas'); const ctx = canvas.getContext('2d');
+        let clothesSrc = currentClothes === 'default' ? charAssets.defaultClothes : (shopItems.find(i => i.id === currentClothes)?.img || '');
+        let bgSrc = bgItems.find(i => i.id === currentBg)?.img || '';
+        let accSrc = accessoryMap[currentClothes] || '';
+        let eyebrowSrc = faceItems.eyebrow.find(i => i.id === currentEyebrow)?.img || '';
+        let eyeSrc = faceItems.eye.find(i => i.id === currentEye)?.img || '';
+        let mouthSrc = faceItems.mouth.find(i => i.id === currentMouth)?.img || '';
+
+        const [imgBg, imgBack, imgBody, imgEye, imgMouth, imgEyebrow, imgClothes, imgFront, imgAcc] = await Promise.all([
+            loadImage(bgSrc), loadImage(charAssets.backHair), loadImage(charAssets.body), loadImage(eyeSrc), loadImage(mouthSrc), loadImage(eyebrowSrc), loadImage(clothesSrc), loadImage(charAssets.frontHair), loadImage(accSrc)
+        ]);
+
+        const baseImg = imgBody || imgBack || imgFront || imgClothes; 
+        if (baseImg) { canvas.width = baseImg.width; canvas.height = baseImg.height; } else { canvas.width = 300; canvas.height = 400; }
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        if(imgBg)      ctx.drawImage(imgBg, 0, 0, canvas.width, canvas.height);
+        if(imgBack)    ctx.drawImage(imgBack, 0, 0, canvas.width, canvas.height);   
+        if(imgBody)    ctx.drawImage(imgBody, 0, 0, canvas.width, canvas.height);
+        if(imgEye)     ctx.drawImage(imgEye, 0, 0, canvas.width, canvas.height);
+        if(imgMouth)   ctx.drawImage(imgMouth, 0, 0, canvas.width, canvas.height);
+        if(imgEyebrow) ctx.drawImage(imgEyebrow, 0, 0, canvas.width, canvas.height);
+        if(imgClothes) ctx.drawImage(imgClothes, 0, 0, canvas.width, canvas.height);
+        if(imgFront)   ctx.drawImage(imgFront, 0, 0, canvas.width, canvas.height);  
+        if(imgAcc)     ctx.drawImage(imgAcc, 0, 0, canvas.width, canvas.height);  
+    }
+
+    function saveAsPNG() {
+        const canvas = document.getElementById('charCanvas'); const ctx = canvas.getContext('2d');
+        const overlay = document.getElementById('effect-overlay');
+        
+        // 다운로드 직전: 사용자가 드래그해 둔 이펙트를 캔버스 안에 도장 찍듯 그려넣기
+        if (currentEffect !== '' && overlay.style.display !== 'none') {
+            const padLeft = 10; const padTop = 10; // CSS padding 값
+            const scaleX = canvas.width / canvas.offsetWidth;
+            const scaleY = canvas.height / canvas.offsetHeight;
+            const relX = overlay.offsetLeft - padLeft;
+            const relY = overlay.offsetTop - padTop;
+            const drawX = relX * scaleX;
+            const drawY = relY * scaleY;
+            const drawW = overlay.offsetWidth * scaleX;
+            const drawH = overlay.offsetHeight * scaleY;
+            
+            ctx.drawImage(overlay, drawX, drawY, drawW, drawH);
+        }
+
+        const link = document.createElement('a'); link.download = `${userData.name}_코디.png`; link.href = canvas.toDataURL('image/png'); link.click();
+        
+        // 저장 완료 후 원상 복구 (찍어낸 도장 지우기)
+        if (currentEffect !== '') renderCanvas();
+    }
+</script>
+</body>
+</html>
