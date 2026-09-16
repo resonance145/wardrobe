@@ -14,86 +14,93 @@
         }
         
         body { font-family: 'Gowun Dodum', sans-serif; background-color: var(--bg-body); color: var(--text-main); margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        .container { background: var(--bg-card); padding: 40px; border-radius: 8px; box-shadow: 0 4px 20px rgba(62, 39, 35, 0.06); width: 100%; max-width: 900px; box-sizing: border-box; border: 1px solid var(--border-color); }
-        h1 { font-size: 22px; color: var(--text-main); margin: 0 0 30px 0; padding-bottom: 12px; border-bottom: 2px solid var(--text-main); font-weight: normal; }
+        
+        /* [디자인 수정] 컨테이너 가로폭 900px -> 1200px 확장 */
+        .container { background: var(--bg-card); padding: 40px 50px; border-radius: 8px; box-shadow: 0 4px 20px rgba(62, 39, 35, 0.06); width: 100%; max-width: 1200px; box-sizing: border-box; border: 1px solid var(--border-color); }
+        
+        h1 { font-size: 24px; color: var(--text-main); margin: 0 0 30px 0; padding-bottom: 12px; border-bottom: 2px solid var(--text-main); font-weight: normal; }
 
-        .login-wrapper { text-align: center; padding: 40px 0; }
+        .login-wrapper { text-align: center; padding: 60px 0; }
         .login-desc { font-size: 16px; color: var(--text-sub); margin-bottom: 25px; }
         
-        input[type="password"], input[type="text"], textarea { padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 4px; font-family: inherit; font-size: 15px; outline: none; color: var(--text-main); background-color: #FFF; box-sizing: border-box; }
-        input[type="password"] { text-align: center; width: 220px; background-color: var(--bg-body); }
+        input[type="password"], input[type="text"], textarea { padding: 12px 15px; border: 1px solid var(--border-color); border-radius: 4px; font-family: inherit; font-size: 15px; outline: none; color: var(--text-main); background-color: #FFF; box-sizing: border-box; }
+        input[type="password"] { text-align: center; width: 240px; background-color: var(--bg-body); }
         
-        button { font-family: inherit; font-size: 14px; cursor: pointer; border: none; border-radius: 4px; transition: all 0.2s ease; padding: 9px 16px; }
-        .btn-login { background-color: var(--text-main); color: #FFF; margin-left: 10px; padding: 10px 20px; }
+        button { font-family: inherit; font-size: 14px; cursor: pointer; border: none; border-radius: 4px; transition: all 0.2s ease; padding: 10px 18px; }
+        .btn-login { background-color: var(--text-main); color: #FFF; margin-left: 10px; padding: 12px 24px; font-size: 15px; }
         .btn-login:hover { background-color: #2D1C19; }
 
         #main-screen { display: none; }
         
-        .header-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; font-size: 18px; }
+        .header-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; font-size: 20px; }
         .account-box { display: flex; align-items: center; gap: 15px; }
-        .btn-inbox { background: none; padding: 4px 8px; font-size: 18px; color: var(--text-sub); border-radius: 4px; border: 1px solid var(--border-color); }
+        .btn-inbox { background: none; padding: 6px 12px; font-size: 20px; color: var(--text-sub); border-radius: 4px; border: 1px solid var(--border-color); }
         .btn-inbox:hover { background-color: #FFF; color: var(--text-main); }
-        .coin-display { font-weight: bold; color: var(--color-orange); }
+        .coin-display { font-weight: bold; color: var(--color-orange); font-size: 22px; }
 
-        .layout-grid { display: flex; gap: 40px; align-items: flex-start; }
+        .layout-grid { display: flex; gap: 50px; align-items: flex-start; }
         .canvas-section { display: flex; flex-direction: column; gap: 15px; }
-        .canvas-container { position: relative; background: var(--bg-body); padding: 10px; border: 1px solid var(--border-color); width: 320px; box-sizing: border-box; }
-        canvas { background-color: #FFFFFF; width: 100%; height: auto; display: block; }
         
-        #effect-overlay {
-            position: absolute; display: none; cursor: grab; z-index: 10;
-            user-select: none; -webkit-user-drag: none; touch-action: none;
-        }
+        /* [디자인 수정] 캔버스(캐릭터) 320px -> 380px 확장 */
+        .canvas-container { position: relative; background: var(--bg-body); padding: 15px; border: 1px solid var(--border-color); width: 380px; box-sizing: border-box; }
+        canvas { background-color: #FFFFFF; width: 100%; height: auto; display: block; border: 1px solid #E2D7C8; }
+        
+        #effect-overlay { position: absolute; display: none; cursor: grab; z-index: 10; user-select: none; -webkit-user-drag: none; touch-action: none; }
         #effect-overlay:active { cursor: grabbing; }
 
-        .shop-section { flex: 1; }
+        .shop-section { flex: 1; min-width: 0; }
         .tab-menu { display: flex; border-bottom: 1px solid var(--border-color); margin-bottom: 20px; flex-wrap: wrap; gap: 5px; padding-bottom: 5px; }
-        .tab-btn { background: none; border: none; padding: 10px 15px; font-size: 15px; color: var(--text-sub); border-bottom: 3px solid transparent; border-radius: 0; }
+        .tab-btn { background: none; border: none; padding: 12px 20px; font-size: 16px; color: var(--text-sub); border-bottom: 3px solid transparent; border-radius: 0; }
         .tab-btn.active { color: var(--text-main); font-weight: bold; border-bottom: 3px solid var(--text-main); }
 
-        .shop-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; max-height: 400px; overflow-y: auto; padding-right: 10px; }
-        .shop-list::-webkit-scrollbar { width: 6px; }
+        /* [디자인 수정] 2열 고정 -> 화면 크기에 맞춰 3~4열 자동 조절 및 세로 길이(max-height) 대폭 확장 */
+        .shop-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; max-height: 550px; overflow-y: auto; padding-right: 15px; }
+        .shop-list::-webkit-scrollbar { width: 8px; }
         .shop-list::-webkit-scrollbar-thumb { background-color: #D3C9BC; border-radius: 4px; }
 
-        .section-divider { grid-column: 1 / -1; font-weight: bold; color: var(--text-main); padding: 10px 5px 5px 5px; border-bottom: 1px dashed var(--border-color); margin-top: 10px; font-size: 15px; }
+        .section-divider { grid-column: 1 / -1; font-weight: bold; color: var(--text-main); padding: 15px 5px 5px 5px; border-bottom: 1px dashed var(--border-color); margin-top: 15px; font-size: 16px; }
         .section-divider:first-child { margin-top: 0; }
 
-        .item-card { background: #FFFFFF; padding: 15px; border: 1px solid var(--border-color); border-radius: 4px; display: flex; flex-direction: column; align-items: center; }
-        .item-preview { width: 90px; height: 90px; object-fit: contain; margin-bottom: 12px; }
-        .item-name { font-size: 15px; margin-bottom: 12px; color: var(--text-main); text-align: center; }
+        .item-card { background: #FFFFFF; padding: 20px; border: 1px solid var(--border-color); border-radius: 6px; display: flex; flex-direction: column; align-items: center; }
+        /* [디자인 수정] 아이템 이미지 사이즈 확장 */
+        .item-preview { width: 110px; height: 110px; object-fit: contain; margin-bottom: 15px; }
+        .item-name { font-size: 16px; margin-bottom: 15px; color: var(--text-main); text-align: center; }
 
         .card-actions { display: flex; gap: 8px; width: 100%; }
-        .btn-buy { background-color: var(--color-orange); color: #FFF; flex: 1; }
+        .btn-buy { background-color: var(--color-orange); color: #FFF; flex: 1; font-size: 15px; }
         .btn-buy:hover { background-color: var(--color-orange-hover); }
-        .btn-equip { background-color: var(--color-green); color: #FFF; flex: 1; }
+        .btn-equip { background-color: var(--color-green); color: #FFF; flex: 1; font-size: 15px; }
         .btn-equip:hover { background-color: var(--color-green-hover); }
-        .btn-gift-trigger { background-color: var(--color-clay); color: #FFF; padding: 9px 12px; }
+        .btn-gift-trigger { background-color: var(--color-clay); color: #FFF; padding: 10px 14px; font-size: 15px; }
         .btn-gift-trigger:hover { background-color: var(--color-clay-hover); }
 
-        .btn-save { background-color: var(--text-main); color: #FFF; width: 100%; padding: 12px; font-size: 16px; }
+        .btn-save { background-color: var(--text-main); color: #FFF; width: 100%; padding: 14px; font-size: 16px; border-radius: 6px; }
         .btn-save:hover { background-color: #2D1C19; }
 
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(45, 28, 25, 0.4); justify-content: center; align-items: center; z-index: 1000; }
-        .modal-box { background: #FFF; padding: 30px; border-radius: 6px; border: 1px solid var(--border-color); width: 100%; max-width: 420px; box-sizing: border-box; color: var(--text-main); }
-        .modal-title { font-size: 18px; margin-bottom: 20px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color); }
+        .modal-box { background: #FFF; padding: 35px; border-radius: 8px; border: 1px solid var(--border-color); width: 100%; max-width: 450px; box-sizing: border-box; color: var(--text-main); }
+        .modal-title { font-size: 20px; margin-bottom: 25px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
         
-        .form-group { margin-bottom: 16px; text-align: left; }
-        .form-label { font-size: 14px; margin-bottom: 6px; display: block; color: var(--text-sub); }
-        .radio-set { display: flex; gap: 15px; margin-top: 4px; }
-        .radio-set label { font-size: 15px; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+        .form-group { margin-bottom: 20px; text-align: left; }
+        .form-label { font-size: 15px; margin-bottom: 8px; display: block; color: var(--text-sub); }
+        .radio-set { display: flex; gap: 20px; margin-top: 6px; }
+        .radio-set label { font-size: 16px; cursor: pointer; display: flex; align-items: center; gap: 6px; }
         
-        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; }
-        .btn-cancel { background-color: #EEE; color: #555; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 30px; }
+        .btn-cancel { background-color: #EEE; color: #555; font-size: 15px; padding: 10px 20px; }
         .btn-cancel:hover { background-color: #DDD; }
-        .btn-submit { background-color: var(--text-main); color: #FFF; }
+        .btn-submit { background-color: var(--text-main); color: #FFF; font-size: 15px; padding: 10px 20px; }
         .btn-submit:hover { background-color: #2D1C19; }
 
-        .inbox-list { max-height: 250px; overflow-y: auto; text-align: left; }
-        .inbox-item { padding: 15px 12px; border-bottom: 1px solid #EEE; font-size: 15px; line-height: 1.5; }
-        .inbox-meta { color: var(--text-sub); font-size: 13px; margin-top: 8px; background: var(--bg-body); padding: 8px 12px; border-radius: 4px; }
-        .btn-delete-msg { background: none; border: 1px solid #E5C5C5; color: #A65A5A; font-size: 12px; padding: 4px 8px; border-radius: 4px; cursor: pointer; margin-left: 10px; }
+        /* [디자인 수정] 수신함 창 세로 길이 확장 */
+        .inbox-list { max-height: 400px; overflow-y: auto; text-align: left; padding-right: 10px; }
+        .inbox-list::-webkit-scrollbar { width: 6px; }
+        .inbox-list::-webkit-scrollbar-thumb { background-color: #D3C9BC; border-radius: 4px; }
+        .inbox-item { padding: 18px 12px; border-bottom: 1px solid #EEE; font-size: 15px; line-height: 1.6; }
+        .inbox-meta { color: var(--text-sub); font-size: 14px; margin-top: 10px; background: var(--bg-body); padding: 10px 14px; border-radius: 4px; }
+        .btn-delete-msg { background: none; border: 1px solid #E5C5C5; color: #A65A5A; font-size: 13px; padding: 5px 10px; border-radius: 4px; cursor: pointer; margin-left: 10px; }
         .btn-delete-msg:hover { background-color: #FAF0F0; }
-        .system-msg { color: #A65A5A; font-size: 14px; margin-top: 15px; height: 20px; }
+        .system-msg { color: #A65A5A; font-size: 15px; margin-top: 20px; height: 20px; }
     </style>
 </head>
 <body>
@@ -163,7 +170,7 @@
 
     let userData = { name: '', coins: 0, owned: [], rowIndex: 0 };
     let shopItems = []; bgItems = []; let receivedMessages = []; 
-    let accessoryMap = {}; let customFitMap = {}; // 맞춤 핏 주소록 변수 추가
+    let accessoryMap = {}; let customFitMap = {}; 
     let faceItems = { eyebrow: [], eye: [], mouth: [], effect: [] };
     
     let currentClothes = 'default'; let currentBg = ''; let currentEyebrow = '';
@@ -181,7 +188,7 @@
                 userData.name = data.name; userData.coins = data.coins; userData.owned = data.owned; userData.rowIndex = data.rowIndex;
                 shopItems = data.shopItems; bgItems = data.bgItems || []; charAssets = data.charAssets;
                 receivedMessages = data.receivedMessages || []; accessoryMap = data.accessoryMap || {};
-                customFitMap = data.customFitMap || {}; // 백엔드에서 받은 맞춤핏 정보 저장
+                customFitMap = data.customFitMap || {}; 
                 faceItems = data.faceItems || { eyebrow: [], eye: [], mouth: [], effect: [] };
                 if(!userData.owned.includes('default')) userData.owned.push('default');
                 document.getElementById('login-screen').style.display = 'none';
@@ -200,7 +207,7 @@
         const isEquipped = (currentId === item.id);
         return `
             <div class="item-card">
-                <img src="${item.img}" class="item-preview" onerror="this.src='https://via.placeholder.com/90/F4EFE6/3E2723?text=파츠'">
+                <img src="${item.img}" class="item-preview" onerror="this.src='https://via.placeholder.com/110/F4EFE6/3E2723?text=파츠'">
                 <div class="item-name">${item.name}</div>
                 <div class="card-actions"><button class="btn-equip" onclick="${equipFunc}('${item.id}')">${isEquipped ? '적용 중' : '적용하기'}</button></div>
             </div>`;
@@ -221,11 +228,11 @@
         let html = '';
 
         if (currentTab === 'clothes') {
-            html += `<div class="item-card"><img src="${charAssets.defaultClothes}" class="item-preview" onerror="this.src='https://via.placeholder.com/90/F4EFE6/3E2723?text=기본옷'"><div class="item-name">기본 의상</div><div class="card-actions"><button class="btn-equip" onclick="equipItem('default')">${currentClothes === 'default' ? '착용 중' : '착용하기'}</button></div></div>`;
+            html += `<div class="item-card"><img src="${charAssets.defaultClothes}" class="item-preview" onerror="this.src='https://via.placeholder.com/110/F4EFE6/3E2723?text=기본옷'"><div class="item-name">기본 의상</div><div class="card-actions"><button class="btn-equip" onclick="equipItem('default')">${currentClothes === 'default' ? '착용 중' : '착용하기'}</button></div></div>`;
             html += shopItems.map(item => {
                 const isOwned = userData.owned.includes(item.id);
                 let actionBtnHtml = isOwned ? `<button class="btn-equip" onclick="equipItem('${item.id}')">${currentClothes === item.id ? '착용 중' : '착용하기'}</button>` : `<button class="btn-buy" onclick="buyItem('${item.id}', ${item.price})">${item.price} C</button>`;
-                return `<div class="item-card"><img src="${item.img}" class="item-preview" onerror="this.src='https://via.placeholder.com/90/F4EFE6/3E2723?text=의상'"><div class="item-name">${item.name}</div><div class="card-actions">${actionBtnHtml}<button class="btn-gift-trigger" onclick="openGiftModal('${item.id}')" title="선물하기">🎁</button></div></div>`;
+                return `<div class="item-card"><img src="${item.img}" class="item-preview" onerror="this.src='https://via.placeholder.com/110/F4EFE6/3E2723?text=의상'"><div class="item-name">${item.name}</div><div class="card-actions">${actionBtnHtml}<button class="btn-gift-trigger" onclick="openGiftModal('${item.id}')" title="선물하기">🎁</button></div></div>`;
             }).join('');
         } 
         else if (currentTab === 'face') {
@@ -333,17 +340,13 @@
     async function renderCanvas() {
         const canvas = document.getElementById('charCanvas'); const ctx = canvas.getContext('2d');
         
-        // ★ 맞춤핏(Custom Fit) 우선 적용 로직 
         let clothesSrc = '';
         if (currentClothes === 'default') {
-            // 커스텀 핏 시트에 'default'에 대한 맞춤 이미지가 있다면 그걸 쓰고, 없다면 기본옷 링크 사용
             clothesSrc = customFitMap['default'] || charAssets.defaultClothes;
         } else {
-            // 사용자가 고른 옷이 맞춤 핏 시트에 등록되어 있다면 그 이미지를 최우선으로 가져옵니다.
             if (customFitMap[currentClothes]) {
                 clothesSrc = customFitMap[currentClothes];
             } else {
-                // 등록되어 있지 않다면 상점의 공용 옷 이미지를 가져옵니다.
                 clothesSrc = shopItems.find(i => i.id === currentClothes)?.img || '';
             }
         }
@@ -377,7 +380,7 @@
         const canvas = document.getElementById('charCanvas'); const ctx = canvas.getContext('2d');
         const overlay = document.getElementById('effect-overlay');
         if (currentEffect !== '' && overlay.style.display !== 'none') {
-            const padLeft = 10; const padTop = 10; 
+            const padLeft = 15; const padTop = 15; 
             const scaleX = canvas.width / canvas.offsetWidth; const scaleY = canvas.height / canvas.offsetHeight;
             const drawX = (overlay.offsetLeft - padLeft) * scaleX; const drawY = (overlay.offsetTop - padTop) * scaleY;
             const drawW = overlay.offsetWidth * scaleX; const drawH = overlay.offsetHeight * scaleY;
