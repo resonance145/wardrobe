@@ -40,7 +40,6 @@
         .canvas-container { position: relative; background: var(--bg-body); padding: 10px; border: 1px solid var(--border-color); width: 320px; box-sizing: border-box; }
         canvas { background-color: #FFFFFF; width: 100%; height: auto; display: block; }
         
-        /* 드래그 가능한 이펙트 오버레이 스타일 (모바일 터치 완벽 지원) */
         #effect-overlay {
             position: absolute; display: none; cursor: grab; z-index: 10;
             user-select: none; -webkit-user-drag: none; touch-action: none;
@@ -121,7 +120,6 @@
             <div class="canvas-section">
                 <div class="canvas-container">
                     <canvas id="charCanvas" width="300" height="400"></canvas>
-                    <!-- 드래그 전용 오버레이 이미지 -->
                     <img id="effect-overlay" crossorigin="Anonymous" src="">
                 </div>
                 <button class="btn-save" onclick="saveAsPNG()">이미지 저장</button>
@@ -138,7 +136,6 @@
         </div>
     </div>
 
-    <!-- 모달창 영역 (이전과 동일) -->
     <div class="modal-overlay" id="gift-modal">
         <div class="modal-box">
             <div class="modal-title" id="gift-modal-title">의상 선물하기</div>
@@ -165,8 +162,9 @@
     const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycby0UQLXN92qNyLhqr8VgEQcDV7Q_rMcDaNzX9KbDskZu7RRM65TCAT8XPaKBkVhpBb5/exec';
 
     let userData = { name: '', coins: 0, owned: [], rowIndex: 0 };
-    let shopItems = []; bgItems = []; let receivedMessages = []; let accessoryMap = {};
-    let faceItems = { eyebrow: [], eye: [], mouth: [], effect: [] }; // 이펙트 배열 추가
+    let shopItems = []; bgItems = []; let receivedMessages = []; 
+    let accessoryMap = {}; let customFitMap = {}; // 맞춤 핏 주소록 변수 추가
+    let faceItems = { eyebrow: [], eye: [], mouth: [], effect: [] };
     
     let currentClothes = 'default'; let currentBg = ''; let currentEyebrow = '';
     let currentEye = ''; let currentMouth = ''; let currentEffect = ''; let currentTab = 'clothes'; let selectedGiftItemId = ''; 
@@ -183,6 +181,7 @@
                 userData.name = data.name; userData.coins = data.coins; userData.owned = data.owned; userData.rowIndex = data.rowIndex;
                 shopItems = data.shopItems; bgItems = data.bgItems || []; charAssets = data.charAssets;
                 receivedMessages = data.receivedMessages || []; accessoryMap = data.accessoryMap || {};
+                customFitMap = data.customFitMap || {}; // 백엔드에서 받은 맞춤핏 정보 저장
                 faceItems = data.faceItems || { eyebrow: [], eye: [], mouth: [], effect: [] };
                 if(!userData.owned.includes('default')) userData.owned.push('default');
                 document.getElementById('login-screen').style.display = 'none';
@@ -233,15 +232,12 @@
             html += '<div class="section-divider">--- 이펙트 (드래그 가능) ---</div>';
             html += createNoneCard(currentEffect, 'equipEffect', '이펙트');
             html += faceItems.effect.map(item => createPartCard(item, currentEffect, 'equipEffect')).join('');
-
             html += '<div class="section-divider">--- 눈썹 ---</div>';
             html += createNoneCard(currentEyebrow, 'equipEyebrow', '눈썹');
             html += faceItems.eyebrow.map(item => createPartCard(item, currentEyebrow, 'equipEyebrow')).join('');
-
             html += '<div class="section-divider">--- 눈 ---</div>';
             html += createNoneCard(currentEye, 'equipEye', '눈');
             html += faceItems.eye.map(item => createPartCard(item, currentEye, 'equipEye')).join('');
-
             html += '<div class="section-divider">--- 입 ---</div>';
             html += createNoneCard(currentMouth, 'equipMouth', '입');
             html += faceItems.mouth.map(item => createPartCard(item, currentMouth, 'equipMouth')).join('');
@@ -253,35 +249,20 @@
         document.getElementById('shop-list').innerHTML = html;
     }
 
-    // --- 이펙트 드래그 로직 (모바일/PC 공용 포인터 이벤트) ---
     const overlay = document.getElementById('effect-overlay');
     let isDragging = false, startMouseX, startMouseY, initialLeft, initialTop;
-
     overlay.addEventListener('pointerdown', (e) => {
-        isDragging = true;
-        startMouseX = e.clientX;
-        startMouseY = e.clientY;
-        initialLeft = overlay.offsetLeft;
-        initialTop = overlay.offsetTop;
-        overlay.setPointerCapture(e.pointerId);
-        overlay.style.cursor = 'grabbing';
+        isDragging = true; startMouseX = e.clientX; startMouseY = e.clientY;
+        initialLeft = overlay.offsetLeft; initialTop = overlay.offsetTop;
+        overlay.setPointerCapture(e.pointerId); overlay.style.cursor = 'grabbing';
     });
-
     overlay.addEventListener('pointermove', (e) => {
         if (!isDragging) return;
-        let nx = initialLeft + (e.clientX - startMouseX);
-        let ny = initialTop + (e.clientY - startMouseY);
-        overlay.style.left = nx + 'px';
-        overlay.style.top = ny + 'px';
+        overlay.style.left = initialLeft + (e.clientX - startMouseX) + 'px';
+        overlay.style.top = initialTop + (e.clientY - startMouseY) + 'px';
     });
+    overlay.addEventListener('pointerup', (e) => { isDragging = false; overlay.releasePointerCapture(e.pointerId); overlay.style.cursor = 'grab'; });
 
-    overlay.addEventListener('pointerup', (e) => {
-        isDragging = false;
-        overlay.releasePointerCapture(e.pointerId);
-        overlay.style.cursor = 'grab';
-    });
-
-    // CORS 우회 적용 이미지 로더
     const loadImage = (src) => {
         return new Promise((resolve) => {
             if (!src) return resolve(null);
@@ -291,21 +272,13 @@
         });
     };
 
-    // 이펙트 장착 처리
     async function equipEffect(id) {
         currentEffect = id; updateUI();
-        if (id === '') {
-            overlay.style.display = 'none';
-        } else {
+        if (id === '') { overlay.style.display = 'none'; } else {
             const item = faceItems.effect.find(i => i.id === id);
             if(item) {
                 const img = await loadImage(item.img);
-                if(img) {
-                    overlay.src = img.src; 
-                    overlay.style.display = 'block';
-                    overlay.style.left = '20px'; // 생성 시 기본 위치 X
-                    overlay.style.top = '20px';  // 생성 시 기본 위치 Y
-                }
+                if(img) { overlay.src = img.src; overlay.style.display = 'block'; overlay.style.left = '20px'; overlay.style.top = '20px'; }
             }
         }
     }
@@ -359,7 +332,22 @@
 
     async function renderCanvas() {
         const canvas = document.getElementById('charCanvas'); const ctx = canvas.getContext('2d');
-        let clothesSrc = currentClothes === 'default' ? charAssets.defaultClothes : (shopItems.find(i => i.id === currentClothes)?.img || '');
+        
+        // ★ 맞춤핏(Custom Fit) 우선 적용 로직 
+        let clothesSrc = '';
+        if (currentClothes === 'default') {
+            // 커스텀 핏 시트에 'default'에 대한 맞춤 이미지가 있다면 그걸 쓰고, 없다면 기본옷 링크 사용
+            clothesSrc = customFitMap['default'] || charAssets.defaultClothes;
+        } else {
+            // 사용자가 고른 옷이 맞춤 핏 시트에 등록되어 있다면 그 이미지를 최우선으로 가져옵니다.
+            if (customFitMap[currentClothes]) {
+                clothesSrc = customFitMap[currentClothes];
+            } else {
+                // 등록되어 있지 않다면 상점의 공용 옷 이미지를 가져옵니다.
+                clothesSrc = shopItems.find(i => i.id === currentClothes)?.img || '';
+            }
+        }
+
         let bgSrc = bgItems.find(i => i.id === currentBg)?.img || '';
         let accSrc = accessoryMap[currentClothes] || '';
         let eyebrowSrc = faceItems.eyebrow.find(i => i.id === currentEyebrow)?.img || '';
@@ -388,25 +376,14 @@
     function saveAsPNG() {
         const canvas = document.getElementById('charCanvas'); const ctx = canvas.getContext('2d');
         const overlay = document.getElementById('effect-overlay');
-        
-        // 다운로드 직전: 사용자가 드래그해 둔 이펙트를 캔버스 안에 도장 찍듯 그려넣기
         if (currentEffect !== '' && overlay.style.display !== 'none') {
-            const padLeft = 10; const padTop = 10; // CSS padding 값
-            const scaleX = canvas.width / canvas.offsetWidth;
-            const scaleY = canvas.height / canvas.offsetHeight;
-            const relX = overlay.offsetLeft - padLeft;
-            const relY = overlay.offsetTop - padTop;
-            const drawX = relX * scaleX;
-            const drawY = relY * scaleY;
-            const drawW = overlay.offsetWidth * scaleX;
-            const drawH = overlay.offsetHeight * scaleY;
-            
+            const padLeft = 10; const padTop = 10; 
+            const scaleX = canvas.width / canvas.offsetWidth; const scaleY = canvas.height / canvas.offsetHeight;
+            const drawX = (overlay.offsetLeft - padLeft) * scaleX; const drawY = (overlay.offsetTop - padTop) * scaleY;
+            const drawW = overlay.offsetWidth * scaleX; const drawH = overlay.offsetHeight * scaleY;
             ctx.drawImage(overlay, drawX, drawY, drawW, drawH);
         }
-
         const link = document.createElement('a'); link.download = `${userData.name}_코디.png`; link.href = canvas.toDataURL('image/png'); link.click();
-        
-        // 저장 완료 후 원상 복구 (찍어낸 도장 지우기)
         if (currentEffect !== '') renderCanvas();
     }
 </script>
