@@ -51,19 +51,18 @@
         .tab-btn { background: none; border: none; padding: 12px 20px; font-size: 16px; color: var(--text-sub); border-bottom: 3px solid transparent; border-radius: 0; }
         .tab-btn.active { color: var(--text-main); font-weight: bold; border-bottom: 3px solid var(--text-main); }
 
-        /* [수정됨] 카드가 슬림해지도록 간격과 크기 조절 */
-        .shop-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; max-height: 550px; overflow-y: auto; padding-right: 15px; }
+        /* [수정됨] 탭을 이동해도 화면이 흔들리지 않도록 높이(height)와 최소 높이(min-height)를 520px로 단단히 고정 */
+        .shop-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; height: 520px; min-height: 520px; overflow-y: auto; padding-right: 15px; align-content: start; box-sizing: border-box; }
         .shop-list::-webkit-scrollbar { width: 8px; }
         .shop-list::-webkit-scrollbar-thumb { background-color: #D3C9BC; border-radius: 4px; }
 
         .section-divider { grid-column: 1 / -1; font-weight: bold; color: var(--text-main); padding: 15px 5px 5px 5px; border-bottom: 1px dashed var(--border-color); margin-top: 15px; font-size: 16px; }
         .section-divider:first-child { margin-top: 0; }
 
-        /* [수정됨] 카드 내부 여백(padding) 최소화 */
-        .item-card { background: #FFFFFF; padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; }
+        .item-card { background: #FFFFFF; padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; height: 195px; box-sizing: border-box; }
         .item-preview { width: 100px; height: 100px; object-fit: contain; margin-bottom: 10px; }
         .preview-none { background:#F4EFE6; border:1px dashed #CCC; box-sizing:border-box; display:flex; justify-content:center; align-items:center; color:#999; font-size:14px; font-weight:bold; }
-        .item-name { font-size: 14px; margin-bottom: 10px; color: var(--text-main); text-align: center; word-break: keep-all; line-height: 1.3; }
+        .item-name { font-size: 14px; margin-bottom: 10px; color: var(--text-main); text-align: center; word-break: keep-all; line-height: 1.3; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
         .card-actions { display: flex; gap: 4px; width: 100%; }
         .btn-buy { background-color: var(--color-orange); color: #FFF; flex: 1; font-size: 13px; padding: 8px 0; }
@@ -189,7 +188,6 @@
                 customFitMap = data.customFitMap || {}; 
                 faceItems = data.faceItems || { eyebrow: [], eye: [], mouth: [], effect: [] };
                 
-                // ★ 수정됨: 플레이어 시트에 적어둔 파츠 ID를 최초 접속 시 바로 착용하도록 설정
                 currentEyebrow = charAssets.defaultEyebrowId || '';
                 currentEye = charAssets.defaultEyeId || '';
                 currentMouth = charAssets.defaultMouthId || '';
@@ -212,7 +210,7 @@
         return `
             <div class="item-card">
                 <img src="${item.img}" class="item-preview" onerror="this.src='https://via.placeholder.com/100/F4EFE6/3E2723?text=파츠'">
-                <div class="item-name">${item.name}</div>
+                <div class="item-name" title="${item.name}">${item.name}</div>
                 <div class="card-actions"><button class="btn-equip" onclick="${equipFunc}('${item.id}')">${isEquipped ? '적용 중' : '적용하기'}</button></div>
             </div>`;
     }
@@ -221,7 +219,7 @@
         return `
             <div class="item-card">
                 <div class="item-preview preview-none">X</div>
-                <div class="item-name">${label}</div>
+                <div class="item-name" title="${label}">${label}</div>
                 <div class="card-actions"><button class="btn-equip" onclick="${equipFunc}('')">${currentId === '' ? '적용 중' : '적용하기'}</button></div>
             </div>`;
     }
@@ -232,11 +230,11 @@
         let html = '';
 
         if (currentTab === 'clothes') {
-            html += `<div class="item-card"><img src="${charAssets.defaultClothes}" class="item-preview" onerror="this.src='https://via.placeholder.com/100/F4EFE6/3E2723?text=기본옷'"><div class="item-name">기본 의상</div><div class="card-actions"><button class="btn-equip" onclick="equipItem('default')">${currentClothes === 'default' ? '착용 중' : '착용하기'}</button></div></div>`;
+            html += `<div class="item-card"><img src="${charAssets.defaultClothes}" class="item-preview" onerror="this.src='https://via.placeholder.com/100/F4EFE6/3E2723?text=기본옷'"><div class="item-name" title="기본 의상">기본 의상</div><div class="card-actions"><button class="btn-equip" onclick="equipItem('default')">${currentClothes === 'default' ? '착용 중' : '착용하기'}</button></div></div>`;
             html += shopItems.map(item => {
                 const isOwned = userData.owned.includes(item.id);
                 let actionBtnHtml = isOwned ? `<button class="btn-equip" onclick="equipItem('${item.id}')">${currentClothes === item.id ? '착용 중' : '착용하기'}</button>` : `<button class="btn-buy" onclick="buyItem('${item.id}', ${item.price})">${item.price} C</button>`;
-                return `<div class="item-card"><img src="${item.img}" class="item-preview" onerror="this.src='https://via.placeholder.com/100/F4EFE6/3E2723?text=의상'"><div class="item-name">${item.name}</div><div class="card-actions">${actionBtnHtml}<button class="btn-gift-trigger" onclick="openGiftModal('${item.id}')" title="선물하기">🎁</button></div></div>`;
+                return `<div class="item-card"><img src="${item.img}" class="item-preview" onerror="this.src='https://via.placeholder.com/100/F4EFE6/3E2723?text=의상'"><div class="item-name" title="${item.name}">${item.name}</div><div class="card-actions">${actionBtnHtml}<button class="btn-gift-trigger" onclick="openGiftModal('${item.id}')" title="선물하기">🎁</button></div></div>`;
             }).join('');
         } 
         else if (currentTab === 'face') {
@@ -245,15 +243,12 @@
             html += faceItems.effect.map(item => createPartCard(item, currentEffect, 'equipEffect')).join('');
             
             html += '<div class="section-divider">--- 눈썹 ---</div>';
-            // ★ 수정됨: 강제로 만들어주던 '기본 눈썹' 가짜 버튼 삭제
             html += faceItems.eyebrow.map(item => createPartCard(item, currentEyebrow, 'equipEyebrow')).join('');
             
             html += '<div class="section-divider">--- 눈 ---</div>';
-            // ★ 수정됨: 강제로 만들어주던 '기본 눈' 가짜 버튼 삭제
             html += faceItems.eye.map(item => createPartCard(item, currentEye, 'equipEye')).join('');
             
             html += '<div class="section-divider">--- 입 ---</div>';
-            // ★ 수정됨: 강제로 만들어주던 '기본 입' 가짜 버튼 삭제
             html += faceItems.mouth.map(item => createPartCard(item, currentMouth, 'equipMouth')).join('');
         }
         else if (currentTab === 'bg') {
@@ -376,7 +371,6 @@
         let bgSrc = bgItems.find(i => i.id === currentBg)?.img || '';
         let accSrc = accessoryMap[currentClothes] || '';
         
-        // ★ 수정됨: 선택한 파츠가 있다면 해당 파츠를, 만약 직접 URL이 적혀있다면 그걸 로드 (예외처리)
         let eyebrowSrc = faceItems.eyebrow.find(i => i.id === currentEyebrow)?.img || (currentEyebrow.startsWith('http') ? currentEyebrow : charAssets.defaultEyebrow);
         let eyeSrc = faceItems.eye.find(i => i.id === currentEye)?.img || (currentEye.startsWith('http') ? currentEye : charAssets.defaultEye);
         let mouthSrc = faceItems.mouth.find(i => i.id === currentMouth)?.img || (currentMouth.startsWith('http') ? currentMouth : charAssets.defaultMouth);
