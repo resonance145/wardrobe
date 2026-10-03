@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>옷장</title>
+    <title>옷장 관리 시스템</title>
     <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -42,7 +42,7 @@
         .layout-grid { display: flex; gap: 50px; align-items: flex-start; }
         .canvas-section { display: flex; flex-direction: column; gap: 15px; }
         
-        .canvas-container { position: relative; background: var(--bg-body); padding: 15px; border: 1px solid var(--border-color); width: 380px; box-sizing: border-box; }
+        .canvas-container { position: relative; background: var(--bg-body); padding: 15px; border: 1px solid var(--border-color); width: 380px; box-sizing: border-box; overflow: hidden; }
         canvas { background-color: #FFFFFF; width: 100%; height: auto; display: block; border: 1px solid #E2D7C8; }
         
         #effect-overlay { position: absolute; display: none; cursor: grab; z-index: 10; user-select: none; -webkit-user-drag: none; touch-action: none; }
@@ -164,6 +164,7 @@
     </div>
 
 <script>
+    // ★★★ 웹 앱 URL 기입 필수 ★★★
     const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycby0UQLXN92qNyLhqr8VgEQcDV7Q_rMcDaNzX9KbDskZu7RRM65TCAT8XPaKBkVhpBb5/exec';
 
     let userData = { name: '', coins: 0, owned: [], rowIndex: 0 };
@@ -266,11 +267,24 @@
         initialLeft = overlay.offsetLeft; initialTop = overlay.offsetTop;
         overlay.setPointerCapture(e.pointerId); overlay.style.cursor = 'grabbing';
     });
+    
     overlay.addEventListener('pointermove', (e) => {
         if (!isDragging) return;
-        overlay.style.left = initialLeft + (e.clientX - startMouseX) + 'px';
-        overlay.style.top = initialTop + (e.clientY - startMouseY) + 'px';
+        
+        let newLeft = initialLeft + (e.clientX - startMouseX);
+        let newTop = initialTop + (e.clientY - startMouseY);
+        
+        const container = overlay.parentElement;
+        const maxLeft = container.clientWidth - overlay.offsetWidth;
+        const maxTop = container.clientHeight - overlay.offsetHeight;
+        
+        newLeft = Math.max(0, Math.min(newLeft, maxLeft));
+        newTop = Math.max(0, Math.min(newTop, maxTop));
+        
+        overlay.style.left = newLeft + 'px';
+        overlay.style.top = newTop + 'px';
     });
+    
     overlay.addEventListener('pointerup', (e) => { isDragging = false; overlay.releasePointerCapture(e.pointerId); overlay.style.cursor = 'grab'; });
 
     const loadImage = (src) => {
@@ -288,7 +302,12 @@
             const item = faceItems.effect.find(i => i.id === id);
             if(item) {
                 const img = await loadImage(item.img);
-                if(img) { overlay.src = img.src; overlay.style.display = 'block'; overlay.style.left = '20px'; overlay.style.top = '20px'; }
+                if(img) { 
+                    overlay.src = img.src; 
+                    overlay.style.display = 'block'; 
+                    overlay.style.left = '15px'; 
+                    overlay.style.top = '15px'; 
+                }
             }
         }
     }
@@ -346,11 +365,17 @@
         let clothesSrc = '';
         let partsToHide = []; 
         let bodySrcToLoad = charAssets.body; 
+        
+        // ★ 추가됨: 전용 몸체(커스텀 바디)가 적용되었는지 추적하는 변수
+        let isCustomBody = false; 
 
         if (currentClothes === 'default') {
             if (customFitMap['default']) {
                 clothesSrc = customFitMap['default'].outfitImg || charAssets.defaultClothes;
-                if (customFitMap['default'].bodyImg) bodySrcToLoad = customFitMap['default'].bodyImg;
+                if (customFitMap['default'].bodyImg) {
+                    bodySrcToLoad = customFitMap['default'].bodyImg;
+                    isCustomBody = true;
+                }
             } else {
                 clothesSrc = charAssets.defaultClothes;
             }
@@ -360,11 +385,17 @@
                 if (currentItem.hideParts) partsToHide = currentItem.hideParts;
                 
                 clothesSrc = currentItem.img;
-                if (currentItem.altBody) bodySrcToLoad = currentItem.altBody; 
+                if (currentItem.altBody) {
+                    bodySrcToLoad = currentItem.altBody; 
+                    isCustomBody = true;
+                }
                 
                 if (customFitMap[currentClothes]) {
                     if (customFitMap[currentClothes].outfitImg) clothesSrc = customFitMap[currentClothes].outfitImg;
-                    if (customFitMap[currentClothes].bodyImg) bodySrcToLoad = customFitMap[currentClothes].bodyImg;
+                    if (customFitMap[currentClothes].bodyImg) {
+                        bodySrcToLoad = customFitMap[currentClothes].bodyImg;
+                        isCustomBody = true;
+                    }
                 }
             }
         }
@@ -386,7 +417,10 @@
 
         if(imgBg) ctx.drawImage(imgBg, 0, 0, canvas.width, canvas.height);
         if(imgBack && !partsToHide.includes('뒷머리')) ctx.drawImage(imgBack, 0, 0, canvas.width, canvas.height);   
-        if(imgBody && !partsToHide.includes('몸')) ctx.drawImage(imgBody, 0, 0, canvas.width, canvas.height);
+        
+        // ★ 수정됨: 전용 몸체(isCustomBody)가 있으면 옷 설정의 '가릴 부위(몸)'를 무시하고 강제로 몸체를 그립니다!
+        if(imgBody && (!partsToHide.includes('몸') || isCustomBody)) ctx.drawImage(imgBody, 0, 0, canvas.width, canvas.height);
+        
         if(imgEye && !partsToHide.includes('눈')) ctx.drawImage(imgEye, 0, 0, canvas.width, canvas.height);
         if(imgMouth && !partsToHide.includes('입')) ctx.drawImage(imgMouth, 0, 0, canvas.width, canvas.height);
         if(imgEyebrow && !partsToHide.includes('눈썹')) ctx.drawImage(imgEyebrow, 0, 0, canvas.width, canvas.height);
