@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>옷장 관리 시스템</title>
+    <title>옷장</title>
     <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -29,6 +29,8 @@
         .btn-login { background-color: var(--text-main); color: #FFF; margin-left: 10px; padding: 12px 24px; font-size: 15px; }
         .btn-login:hover { background-color: #2D1C19; }
 
+        .usage-notice { font-size: 13px; color: #9CAF88; margin-top: 30px; letter-spacing: -0.3px; }
+
         #main-screen { display: none; }
         
         .header-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; font-size: 20px; }
@@ -51,7 +53,6 @@
         .tab-btn { background: none; border: none; padding: 12px 20px; font-size: 16px; color: var(--text-sub); border-bottom: 3px solid transparent; border-radius: 0; }
         .tab-btn.active { color: var(--text-main); font-weight: bold; border-bottom: 3px solid var(--text-main); }
 
-        /* [수정됨] 탭을 이동해도 화면이 흔들리지 않도록 높이(height)와 최소 높이(min-height)를 520px로 단단히 고정 */
         .shop-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; height: 520px; min-height: 520px; overflow-y: auto; padding-right: 15px; align-content: start; box-sizing: border-box; }
         .shop-list::-webkit-scrollbar { width: 8px; }
         .shop-list::-webkit-scrollbar-thumb { background-color: #D3C9BC; border-radius: 4px; }
@@ -108,6 +109,7 @@
             <input type="password" id="pw-input" placeholder="비밀번호 입력" onkeypress="if(event.keyCode==13) login()">
             <button class="btn-login" onclick="login()">접속하기</button>
             <div id="login-msg" class="system-msg"></div>
+            <div class="usage-notice">생성된 이미지는 자유롭게 가공·사용해주세요.</div>
         </div>
     </div>
 
@@ -162,7 +164,6 @@
     </div>
 
 <script>
-    // ★★★ 웹 앱 URL 기입 필수 ★★★
     const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycby0UQLXN92qNyLhqr8VgEQcDV7Q_rMcDaNzX9KbDskZu7RRM65TCAT8XPaKBkVhpBb5/exec';
 
     let userData = { name: '', coins: 0, owned: [], rowIndex: 0 };
