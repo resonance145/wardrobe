@@ -45,8 +45,9 @@
         .canvas-container { position: relative; background: var(--bg-body); padding: 15px; border: 1px solid var(--border-color); width: 380px; box-sizing: border-box; overflow: hidden; }
         canvas { background-color: #FFFFFF; width: 100%; height: auto; display: block; border: 1px solid #E2D7C8; }
         
-        /* [수정됨] 이펙트의 억지 크기 제한을 풀고, 스크립트에서 정확히 캔버스 크기를 복사하도록 설정 */
-        #effect-overlay { position: absolute; display: none; cursor: grab; z-index: 10; user-select: none; -webkit-user-drag: none; touch-action: none; }
+        /* 이펙트 틀: 캔버스 위에 정확히 겹쳐지고, 캔버스 밖으로 나간 부분은 잘려 보임 */
+        #effect-clip { position: absolute; overflow: hidden; z-index: 10; pointer-events: none; display: none; }
+        #effect-overlay { position: absolute; left: 0; top: 0; max-width: none; cursor: grab; pointer-events: auto; user-select: none; -webkit-user-select: none; -webkit-user-drag: none; touch-action: none; }
         #effect-overlay:active { cursor: grabbing; }
 
         .shop-section { flex: 1; min-width: 0; }
@@ -127,7 +128,7 @@
             <div class="canvas-section">
                 <div class="canvas-container">
                     <canvas id="charCanvas" width="300" height="400"></canvas>
-                    <img id="effect-overlay" crossorigin="Anonymous" src="">
+                    <div id="effect-clip"><img id="effect-overlay" crossorigin="Anonymous" src="" draggable="false"></div>
                 </div>
                 <button class="btn-save" onclick="saveAsPNG()">이미지 저장</button>
             </div>
@@ -262,32 +263,42 @@
     }
 
     const overlay = document.getElementById('effect-overlay');
+    const effectClip = document.getElementById('effect-clip');
     let isDragging = false, startMouseX, startMouseY, initialLeft, initialTop;
+
+    overlay.addEventListener('dragstart', (e) => e.preventDefault());   // 브라우저 기본 이미지 끌기 방지
     overlay.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
         isDragging = true; startMouseX = e.clientX; startMouseY = e.clientY;
         initialLeft = overlay.offsetLeft; initialTop = overlay.offsetTop;
         overlay.setPointerCapture(e.pointerId); overlay.style.cursor = 'grabbing';
     });
-    
-    // 드래그 시 캔버스 밖으로 나가지 못하게 제한
+
+    // 이펙트 중심이 캔버스 안에 있는 범위까지 자유롭게 이동 (밖으로 나간 부분은 잘려 보임)
+    function clampEffect(left, top) {
+        const w = overlay.offsetWidth, h = overlay.offsetHeight;
+        const cw = effectClip.clientWidth, ch = effectClip.clientHeight;
+        return {
+            left: Math.max(-w / 2, Math.min(left, cw - w / 2)),
+            top: Math.max(-h / 2, Math.min(top, ch - h / 2))
+        };
+    }
+
     overlay.addEventListener('pointermove', (e) => {
         if (!isDragging) return;
-        
-        let newLeft = initialLeft + (e.clientX - startMouseX);
-        let newTop = initialTop + (e.clientY - startMouseY);
-        
-        const container = overlay.parentElement;
-        const maxLeft = Math.max(0, container.clientWidth - overlay.offsetWidth);
-        const maxTop = Math.max(0, container.clientHeight - overlay.offsetHeight);
-        
-        newLeft = Math.max(0, Math.min(newLeft, maxLeft));
-        newTop = Math.max(0, Math.min(newTop, maxTop));
-        
-        overlay.style.left = newLeft + 'px';
-        overlay.style.top = newTop + 'px';
+        const pos = clampEffect(initialLeft + (e.clientX - startMouseX), initialTop + (e.clientY - startMouseY));
+        overlay.style.left = pos.left + 'px';
+        overlay.style.top = pos.top + 'px';
     });
-    
-    overlay.addEventListener('pointerup', (e) => { isDragging = false; overlay.releasePointerCapture(e.pointerId); overlay.style.cursor = 'grab'; });
+
+    function endDrag(e) {
+        if (!isDragging) return;
+        isDragging = false; rememberEffectPosition();
+        try { overlay.releasePointerCapture(e.pointerId); } catch (_) {}
+        overlay.style.cursor = 'grab';
+    }
+    overlay.addEventListener('pointerup', endDrag);
+    overlay.addEventListener('pointercancel', endDrag);
 
     const loadImage = (src) => {
         return new Promise((resolve) => {
@@ -298,28 +309,52 @@
         });
     };
 
-    // ★ [수정됨] 이펙트를 누르는 순간 캔버스의 가로/세로 표시 크기를 1:1로 정확하게 상속받음
+    // 캔버스가 화면에 실제로 그려진 영역(테두리 제외) 위치/크기
+    function getCanvasRect() {
+        const c = document.getElementById('charCanvas');
+        return { left: c.offsetLeft + c.clientLeft, top: c.offsetTop + c.clientTop, width: c.clientWidth, height: c.clientHeight };
+    }
+
+    let effectNatural = { w: 0, h: 0 };   // 이펙트 원본 크기
+    let effectRel = { x: 0.5, y: 0.5 };   // 캔버스 기준 이펙트 중심 위치(0~1), 캔버스 크기가 바뀌어도 위치 유지용
+
+    // 이펙트 틀을 캔버스 위에 겹치고, 이펙트를 비율 유지한 채 캔버스 안에 들어가는 크기로 맞춤
+    function fitEffectToCanvas(keepPosition) {
+        if (!effectNatural.w || !effectNatural.h) return;
+        const r = getCanvasRect();
+        if (!r.width || !r.height) return;
+        effectClip.style.left = r.left + 'px'; effectClip.style.top = r.top + 'px';
+        effectClip.style.width = r.width + 'px'; effectClip.style.height = r.height + 'px';
+
+        const scale = Math.min(r.width / effectNatural.w, r.height / effectNatural.h, 1);
+        const w = Math.round(effectNatural.w * scale), h = Math.round(effectNatural.h * scale);
+        overlay.style.width = w + 'px';
+        overlay.style.height = h + 'px';
+
+        const rx = keepPosition ? effectRel.x : 0.5, ry = keepPosition ? effectRel.y : 0.5;
+        const pos = clampEffect(r.width * rx - w / 2, r.height * ry - h / 2);
+        overlay.style.left = pos.left + 'px';
+        overlay.style.top = pos.top + 'px';
+    }
+
+    function rememberEffectPosition() {
+        const cw = effectClip.clientWidth, ch = effectClip.clientHeight;
+        if (!cw || !ch) return;
+        effectRel.x = (overlay.offsetLeft + overlay.offsetWidth / 2) / cw;
+        effectRel.y = (overlay.offsetTop + overlay.offsetHeight / 2) / ch;
+    }
+
     async function equipEffect(id) {
         currentEffect = id; updateUI();
-        if (id === '') { overlay.style.display = 'none'; } else {
-            const item = faceItems.effect.find(i => i.id === id);
-            if(item) {
-                const img = await loadImage(item.img);
-                if(img) { 
-                    overlay.src = img.src; 
-                    overlay.style.display = 'block'; 
-                    
-                    const canvas = document.getElementById('charCanvas');
-                    // 캔버스 크기와 이펙트 크기를 강제로 일치시킴
-                    overlay.style.width = canvas.offsetWidth + 'px';
-                    overlay.style.height = canvas.offsetHeight + 'px';
-                    
-                    // 패딩값(15px)만큼 띄워서 캔버스와 1픽셀도 안 틀리게 딱 겹치게 만듦
-                    overlay.style.left = '15px'; 
-                    overlay.style.top = '15px'; 
-                }
-            }
-        }
+        if (id === '') { effectClip.style.display = 'none'; return; }
+        const item = faceItems.effect.find(i => i.id === id);
+        if (!item) return;
+        const img = await loadImage(item.img);
+        if (!img || currentEffect !== id) return;   // 로딩 중 다른 이펙트를 눌렀으면 무시
+        effectNatural = { w: img.naturalWidth || img.width, h: img.naturalHeight || img.height };
+        overlay.src = img.src;
+        effectClip.style.display = 'block';
+        fitEffectToCanvas(false);   // 새 이펙트는 캔버스 중앙에 맞춰서 등장
     }
 
     async function buyItem(itemId, price) {
@@ -439,19 +474,15 @@
         if(imgAcc && !partsToHide.includes('악세사리')) ctx.drawImage(imgAcc, 0, 0, canvas.width, canvas.height);  
 
         // ★ [수정됨] 옷을 갈아입어서 캔버스 크기나 비율이 바뀌더라도 이펙트 크기도 따라가도록 갱신
-        if (currentEffect !== '' && overlay.style.display !== 'none') {
-            overlay.style.width = canvas.offsetWidth + 'px';
-            overlay.style.height = canvas.offsetHeight + 'px';
-        }
+        if (currentEffect !== '' && effectClip.style.display !== 'none') fitEffectToCanvas(true);
     }
 
     function saveAsPNG() {
         const canvas = document.getElementById('charCanvas'); const ctx = canvas.getContext('2d');
-        const overlay = document.getElementById('effect-overlay');
-        if (currentEffect !== '' && overlay.style.display !== 'none') {
-            const padLeft = 15; const padTop = 15; 
-            const scaleX = canvas.width / canvas.offsetWidth; const scaleY = canvas.height / canvas.offsetHeight;
-            const drawX = (overlay.offsetLeft - padLeft) * scaleX; const drawY = (overlay.offsetTop - padTop) * scaleY;
+        if (currentEffect !== '' && effectClip.style.display !== 'none') {
+            const r = getCanvasRect();
+            const scaleX = canvas.width / r.width; const scaleY = canvas.height / r.height;
+            const drawX = overlay.offsetLeft * scaleX; const drawY = overlay.offsetTop * scaleY;
             const drawW = overlay.offsetWidth * scaleX; const drawH = overlay.offsetHeight * scaleY;
             ctx.drawImage(overlay, drawX, drawY, drawW, drawH);
         }
