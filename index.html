@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>옷장 관리 시스템</title>
+    <title>옷장</title>
     <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -45,7 +45,6 @@
         .canvas-container { position: relative; background: var(--bg-body); padding: 15px; border: 1px solid var(--border-color); width: 380px; box-sizing: border-box; overflow: hidden; }
         canvas { background-color: #FFFFFF; width: 100%; height: auto; display: block; border: 1px solid #E2D7C8; }
         
-        /* 이펙트 틀: 캔버스 위에 정확히 겹쳐지고, 캔버스 밖으로 나간 부분은 잘려 보임 */
         #effect-clip { position: absolute; overflow: hidden; z-index: 10; pointer-events: none; display: none; }
         #effect-overlay { position: absolute; left: 0; top: 0; max-width: none; cursor: grab; pointer-events: auto; user-select: none; -webkit-user-select: none; -webkit-user-drag: none; touch-action: none; }
         #effect-overlay:active { cursor: grabbing; }
@@ -111,7 +110,7 @@
             <input type="password" id="pw-input" placeholder="비밀번호 입력" onkeypress="if(event.keyCode==13) login()">
             <button class="btn-login" onclick="login()">접속하기</button>
             <div id="login-msg" class="system-msg"></div>
-            <div class="usage-notice">생성된 이미지는 자유롭게 가공·사용해주세요.</div>
+            <div class="usage-notice">생성된 이미지는 자유롭게 가공·사용해주세요.<br>과하게 겹쳐지는 부분이 발생할 시 총괄게로 알려주시면 수정 후 전달드립니다. </div>
         </div>
     </div>
 
