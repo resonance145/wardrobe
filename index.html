@@ -241,17 +241,17 @@
             }).join('');
         } 
         else if (currentTab === 'face') {
-            html += '<div class="section-divider">--- 이펙트 (드래그 가능) ---</div>';
+            html += '<div class="section-divider">◇ 이펙트 (드래그 가능) ◇</div>';
             html += createNoneCard(currentEffect, 'equipEffect', '이펙트 지우기');
             html += faceItems.effect.map(item => createPartCard(item, currentEffect, 'equipEffect')).join('');
             
-            html += '<div class="section-divider">--- 눈썹 ---</div>';
+            html += '<div class="section-divider">◇ 눈썹 ◇</div>';
             html += faceItems.eyebrow.map(item => createPartCard(item, currentEyebrow, 'equipEyebrow')).join('');
             
-            html += '<div class="section-divider">--- 눈 ---</div>';
+            html += '<div class="section-divider">◇ 눈 ◇</div>';
             html += faceItems.eye.map(item => createPartCard(item, currentEye, 'equipEye')).join('');
             
-            html += '<div class="section-divider">--- 입 ---</div>';
+            html += '<div class="section-divider">◇ 입 ◇</div>';
             html += faceItems.mouth.map(item => createPartCard(item, currentMouth, 'equipMouth')).join('');
         }
         else if (currentTab === 'bg') {
